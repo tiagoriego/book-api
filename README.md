@@ -161,6 +161,11 @@ if __name__ == "__main__":
 python script.py
 ```
 
+## Swagger
+
+`http://localhost:8080/docs`
+
+
 ## Helpful Links
 * [FastAPI](https://fastapi.tiangolo.com/)
 * [About Swagger](https://fastapi.tiangolo.com/advanced/extending-openapi/)
