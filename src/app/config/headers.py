@@ -30,4 +30,4 @@ async def get_current_user(token: str = Depends(oauth2_schema)):
 
 async def get_api_key_header(x_api_key: str = Header()):
     if x_api_key != API_KEY:
-        raise HTTPException(status_code=400, detail="API Key is not valid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API Key is not valid")

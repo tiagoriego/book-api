@@ -7,9 +7,10 @@ from services import user_service
 from config.variables import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from models.token import Token
 from models.login import Login
-from models.user import User, UpdateUser, UpdatePassowrd
-from config.headers import get_current_user
-import re
+from models.user import User, UpdateUser, UpdatePassowrd, InsertUser
+from schemas.user import User as UserSchema
+from config.headers import get_current_user, get_api_key_header
+from utils.field import is_valid_email
 
 router = APIRouter()
 
@@ -86,9 +87,7 @@ async def update_user(user: UpdateUser, current_user: User = Depends(get_current
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Email cannot be used.")
 
-    is_valide_email = re.search(
-        "^[a-zA-Z0-9_\.]+@([a-zA-Z0-9]+\.)+[a-zA-Z0-9]{2,4}$", user.email)
-    if not is_valide_email:
+    if not is_valid_email(user.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email is not valid.")
 
@@ -131,3 +130,40 @@ async def update_user_password(user: UpdatePassowrd, current_user: User = Depend
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Unable to update user.")
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/users",
+             status_code=status.HTTP_201_CREATED,
+             response_model=User,
+             dependencies=[Depends(get_api_key_header)])
+def add_user(user: InsertUser):
+    old_user = user_service.get_user_by_username(username=user.username)
+    if old_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"The username {old_user.username} is not available.")
+
+    old_email = user_service.get_user_by_email(email=user.email)
+    if old_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"The email {old_email.email} is not available.")
+
+    if not is_valid_email(user.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email is not valid.")
+
+    add_user = UserSchema(
+        full_name=user.full_name,
+        email=user.email,
+        username=user.username,
+        hashed_password=security.get_password_hash(user.password),
+        disabled=False)
+
+    user_service.add_user(add_user)
+    new_user = user_service.get_user_by_username(username=user.username)
+
+    return User(
+        id=new_user.id,
+        full_name=new_user.full_name,
+        username=new_user.username,
+        email=new_user.email
+    )
