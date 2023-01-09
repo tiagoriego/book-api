@@ -1,15 +1,17 @@
 from fastapi.testclient import TestClient
 from main import app
+from config.variables import API_KEY
 
 client = TestClient(app)
 
 login = {
-    "username": "jdoido",
+    "username": "foobar",
     "password": "123456"
 }
 
 header = {
-    "authorization": ""
+    "authorization": "",
+    "x-api-key": ""
 }
 
 
@@ -20,6 +22,27 @@ def test_health():
         "success": True,
         "data": "Hello, API!"
     }
+
+
+def test_create_user():
+    header["x-api-key"] = API_KEY
+    user = {
+        "full_name": "foobar",
+        "email": "foo@bar.com",
+    }
+    user.update(login)
+    response = client.post('/users', json=user, headers=header)
+    assert response.status_code == 201
+
+
+def test_create_user_failed():
+    user = {
+        "full_name": "foobar",
+        "email": "foo@bar.com",
+    }
+    user.update(login)
+    response = client.post('/users', json=user, headers=header)
+    assert response.status_code == 400
 
 
 def test_login():

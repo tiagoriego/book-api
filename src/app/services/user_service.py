@@ -48,3 +48,9 @@ def update_user_password(id: str, hashed_password: str):
         return True
     else:
         return False
+
+
+def add_user(user: User):
+    session.add(user)
+    session.flush()
+    session.commit()

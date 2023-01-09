@@ -23,3 +23,16 @@ class UpdatePassowrd(BaseModel):
     @validator("new_password", "old_password", pre=True, always=True)
     def remove_whitespace(cls, value: str) -> str | None:
         return value.replace(" ", "")
+
+
+class InsertUser(BaseModel):
+
+    full_name: str
+    email: str
+    username: str = Field(min_length=5)
+    password: str = Field(min_length=6)
+
+    validator("username", "password", pre=True, always=True)
+    def remove_whitespace(cls, value: str) -> str | None:
+        return value.replace(" ", "")
+

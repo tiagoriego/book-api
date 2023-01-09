@@ -113,57 +113,32 @@ Ex.
 platform linux -- Python 3.10.5, pytest-7.2.0, pluggy-1.0.0
 rootdir: /home/user/projects/python/book-api/src/app
 plugins: anyio-3.6.2
-collected 6 items
+collected 8 items
 
 
 
 test/test_main.py .....														[100%]
 
-==================== 6 passed in 0.76s ==============
+==================== 8 passed in 1.06s ==============
 ```
 
-## Script
+## Create New User
 
 ```bash
-cd src/app
-touch script.py
-```
-Content:
-
-```python
-from config.db import Session
-from schemas.user import User
-from utils.security import get_password_hash
-
-session = Session()
-
-
-def create_user():
-    user = User(
-        username="jdoido",
-        hashed_password=get_password_hash("123456"),
-        full_name="Joao Doido",
-        email="joao@doido.com",
-        disabled=False
-    )
-
-    session.add(user)
-    session.flush()
-    print(user.id, user.username, user.email)
-    session.commit()
-
-
-if __name__ == "__main__":
-    create_user()
-```
-
-```bash
-python script.py
+curl --location --request POST 'localhost:{port}/users/' \
+--header 'x-api-key: {api_key}' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "full_name": "Foobar",
+    "email": "foo@bar.com",
+    "username": "foobar",
+    "password": "123123"
+}'
 ```
 
 ## Swagger
 
-`http://localhost:8080/docs`
+`http://localhost:{port}/docs`
 
 
 ## Helpful Links
