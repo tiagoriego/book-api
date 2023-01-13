@@ -3,6 +3,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from config import variables
 from routers import books, users
+from models.health import Health
 
 app = FastAPI()
 
@@ -23,9 +24,12 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/", response_model=Health, tags=["health"])
 async def get_index():
-    return {"success": True, "data": "Hello, API!"}
+    return Health(
+        success=True,
+        message="Hello, API!"
+    )
 
 
 def get_custom_openapi():

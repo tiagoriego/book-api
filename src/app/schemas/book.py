@@ -1,5 +1,6 @@
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, DateTime
+from sqlalchemy.sql import func
 from config.db import Base
 import uuid
 
@@ -18,6 +19,9 @@ class Book(Base):
     paperback = Column(String)
     publication_date = Column(String)
     publisher = Column(String)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True),
+                        onupdate=func.now(), default=func.now())
 
     def __init__(self, title, author, dimensions, format,
                  isbn, language, paperback, publication_date, publisher):

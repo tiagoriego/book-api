@@ -60,6 +60,7 @@ docker restart postgres_container
 
 * `books`
 * `users`
+* `links`
 
 Books
 
@@ -75,6 +76,8 @@ CREATE TABLE public.books (
 	publication_date varchar(255) NOT NULL,
 	publisher varchar(255) NOT NULL,
 	title varchar(255) NOT NULL,
+	created_at timestamp NOT NULL,
+	updated_at timestamp NOT NULL,
 	CONSTRAINT books_pkey PRIMARY KEY (id)
 );
 ```
@@ -89,12 +92,35 @@ CREATE TABLE public.users (
 	username varchar(255) NOT NULL,
 	hashed_password varchar(255) NOT NULL,
 	disabled bool NOT NULL,
+	created_at timestamp NOT NULL,
+	updated_at timestamp NOT NULL,
 	CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX users_email_idx ON public.users (email);
-CREATE UNIQUE INDEX users_username_idx ON public.users (username);
+CREATE UNIQUE INDEX users_email_idx ON public.users USING btree (email);
+CREATE UNIQUE INDEX users_username_idx ON public.users USING btree (username);
 ```
 
+Links
+
+```sql
+CREATE TABLE public.links (
+	id varchar(255) NOT NULL,
+	book_id varchar(255) NOT NULL,
+	name varchar(255) NOT NULL,
+	url varchar(400) NOT NULL,
+	created_at timestamp NOT NULL,
+	updated_at timestamp NOT NULL,
+	CONSTRAINT links_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE public.links ADD CONSTRAINT books_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE CASCADE;
+```
+
+## Displaying the SQL query
+
+```python
+engine=create_engine(DB_CONNECTION, echo=True)
+```
 ## Start
 
 ```bash
@@ -132,7 +158,7 @@ curl --location --request POST 'localhost:{port}/users/' \
     "full_name": "Foobar",
     "email": "foo@bar.com",
     "username": "foobar",
-    "password": "123123"
+    "password": "123456"
 }'
 ```
 
@@ -140,6 +166,28 @@ curl --location --request POST 'localhost:{port}/users/' \
 
 `http://localhost:{port}/docs`
 
+
+## Screenshots
+
+API
+
+![Alt text](/screenshots/book_api_01.png "Swagger")
+
+Books
+
+![Alt text](/screenshots/book_api_02.png "Swagger")
+
+Login
+
+![Alt text](/screenshots/book_api_03.png "Swagger")
+
+Users
+
+![Alt text](/screenshots/book_api_04.png "Swagger")
+
+Health
+
+![Alt text](/screenshots/book_api_05.png "Swagger")
 
 ## Helpful Links
 * [FastAPI](https://fastapi.tiangolo.com/)
