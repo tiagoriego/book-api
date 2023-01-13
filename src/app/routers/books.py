@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Response
-from services import book_service
+from services import book_service, link_service
 from config.headers import get_current_user
 from models.book import Book, BookUpdate
+from models.link import Link
 from schemas.book import Book as BookSchema
+from schemas.link import Link as LinkSchema
 
 router = APIRouter(
     prefix="/books",
@@ -10,6 +12,22 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
     responses={status.HTTP_404_NOT_FOUND: {"description": "Not found"}}
 )
+
+
+def get_book_by_id(book_id: str) -> BookSchema | HTTPException:
+    book = book_service.get_book_by_id(book_id=book_id)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    return book
+
+
+def get_link_by_id(link_id: str) -> LinkSchema | HTTPException:
+    link = link_service.get_link_by_id(link_id=link_id)
+    if not link:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    return link
 
 
 @router.get("/", response_model=list[Book])
@@ -34,10 +52,7 @@ async def get_all_book():
 
 @router.get("/{book_id}", response_model=Book)
 async def get_book(book_id: str):
-    book = book_service.get_book_by_id(book_id=book_id)
-    if not book:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    book = get_book_by_id(book_id=book_id)
     result = Book(
         id=book.id,
         title=book.title,
@@ -73,10 +88,7 @@ async def create_book(book: Book):
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book(book_id: str):
-    book = book_service.get_book_by_id(book_id=book_id)
-    if not book:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    get_book_by_id(book_id=book_id)
     book_service.delete_book(book_id=book_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -84,10 +96,7 @@ async def delete_book(book_id: str):
 @router.patch("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(book_id: str, book: BookUpdate):
 
-    old_book = book_service.get_book_by_id(book_id=book_id)
-    if not old_book:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    old_book = get_book_by_id(book_id=book_id)
 
     if not book.title:
         book.title = old_book.title
@@ -128,4 +137,45 @@ async def update_book(book_id: str, book: BookUpdate):
 
     book_service.update_book(book=old_book)
 
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{book_id}/links", response_model=list[Link])
+async def get_all_book_links(book_id: str):
+    book = get_book_by_id(book_id=book_id)
+    links = link_service.get_all_link(book_id=book.id)
+    result: list[Link] = []
+    for link in links:
+        result.append(Link(
+            id=link.id,
+            book_id=link.book_id,
+            name=link.name,
+            url=link.url
+        ))
+
+    return result
+
+
+@router.post("/{book_id}/links", response_model=Link, status_code=status.HTTP_201_CREATED)
+async def create_book_link(book_id: str, link: Link):
+    book = get_book_by_id(book_id=book_id)
+    new_link = LinkSchema(
+        book_id=book.id,
+        name=link.name,
+        url=link.url
+    )
+    result = link_service.create_link(new_link)
+    return Link(
+        id=result.id,
+        book_id=result.book_id,
+        name=link.name,
+        url=result.url
+    )
+
+
+@router.delete("/{book_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book_link(book_id: str, link_id: str):
+    get_book_by_id(book_id=book_id)
+    get_link_by_id(link_id=link_id)
+    link_service.delete_link(link_id=link_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

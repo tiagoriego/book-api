@@ -58,17 +58,17 @@ def get_autentication(login: Login) -> Token:
     return token
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, tags=["login"])
 async def get_login(login: Login):
     return get_autentication(login=login)
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token, tags=["login"])
 async def get_token(form_data: OAuth2PasswordRequestForm = Depends()):
     return get_autentication(Login(username=form_data.username, password=form_data.password))
 
 
-@router.get("/users/me", response_model=User)
+@router.get("/users/me", response_model=User, tags=["users"])
 async def get_me(current_user: User = Depends(get_current_user)):
     user = User(
         id=current_user.id,
@@ -79,7 +79,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return user
 
 
-@router.patch("/users", response_model=User)
+@router.patch("/users", response_model=User, tags=["users"])
 async def update_user(user: UpdateUser, current_user: User = Depends(get_current_user)):
     user_email = user_service.get_user_by_email(email=user.email)
     if user_email:
@@ -106,7 +106,7 @@ async def update_user(user: UpdateUser, current_user: User = Depends(get_current
                 email=same_user.email)
 
 
-@router.patch("/users/password", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/users/password", status_code=status.HTTP_204_NO_CONTENT, tags=["users"])
 async def update_user_password(user: UpdatePassowrd, current_user: User = Depends(get_current_user)):
 
     if user.old_password == user.new_password:
@@ -135,7 +135,8 @@ async def update_user_password(user: UpdatePassowrd, current_user: User = Depend
 @router.post("/users",
              status_code=status.HTTP_201_CREATED,
              response_model=User,
-             dependencies=[Depends(get_api_key_header)])
+             dependencies=[Depends(get_api_key_header)],
+             tags=["users"])
 def add_user(user: InsertUser):
     old_user = user_service.get_user_by_username(username=user.username)
     if old_user:

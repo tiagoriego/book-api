@@ -20,7 +20,7 @@ def test_health():
     assert response.status_code == 200
     assert response.json() == {
         "success": True,
-        "data": "Hello, API!"
+        "message": "Hello, API!"
     }
 
 
