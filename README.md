@@ -2,7 +2,7 @@
 
 ## Install
 
-Install [pyenv](https://github.com/pyenv/pyenv)
+Install [pyenv](https://github.com/pyenv/pyenv-installer)
 
 Python Version `3.10.5`
 
